@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include templates/head %>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/room.css' />
+    <meta name="viewport" content="initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0, width=device-width">
+
+    <script src="http://malsup.github.com/jquery.form.js"></script>
+    <script src="/javascripts/jquery.sly.min.js"></script>
+    <script src='/javascripts/jquery-ui.custom.min.js'></script>
+    <script src='/javascripts/jquery.ui.touch-punch.min.js'></script>
+    <script>
+        $(function(){
+            $('#escapeDraw').hide();
+            var $sly = new Sly($("#slides"),{
+                horizontal: 1,
+                itemNav: 'basic',
+                scrollBy: 1,
+                dragging: 1,
+                speed: 200,
+                scrollBar: $("#scrollbar"),
+                dragHandle: 1,
+                dynamicHandle:1,
+                clickBar: 1,
+                pagesBar: $("#pages")
+            });
+            var $document = $(document);
+            
+            $.get('/roomCount',{room:'<%= roomNumber %>'},function(data){
+                var cnt = JSON.parse(data).count;
+                $("#roomCount").text(cnt);
+            });
+            
+            // local functions
+            $document.bind({
+                insertComment: function(e,name,comment,id){
+                    var $cont = $("<div>").attr({id:id})
+                        .append($("<span>").text('★').addClass('star')
+                            .click(function(e){
+                                $(this).fadeTo(500,0.25).fadeTo(500,1);
+                                $.post('/addStar',{room:<%= roomNumber %>,id:id},function(data){
+                                });
+                            }))
+                        .append($("<span>").text(name+": "+comment));
+                    
+                    $("#chat").prepend($cont);
+                }
+                ,insertImage: function(e,path,title,isReload){
+                    var $image = $("<img>").attr({src:path, alt:title,})
+                        .error(function(e){
+                            $(this).attr({src:'/images/notImage.png'});
+                            return true;
+                        });
+                    var $slide = $("<li>")
+                        .append($image)
+                        .append($("<p>").text(title))
+                        .click(function(){
+                            room.emit('change image',JSON.stringify({
+                                index:$("#slides li").index(this),
+                                path:$("img",this).attr('src'),
+                                title:title
+                            }));
+                        });
+                    $("#dummy_slide").before($slide);
+                    if (isReload) $sly.reload();
+                }
+                ,changeMainImage:function(e,path,title) {
+                    $("#mainImage").empty();
+                    $("#mainImage").append($("<img>").attr({src:path,alt:title}));
+                }
+                ,insertMark:function(e,data) {
+                    var id = data.id?data.id:data._id;
+                    var $div = $("<div>").addClass('mark '+data.type).attr({id:id});
+                    if (data.type == 'click') {
+                        var $click = $div.css({top:data.pos.y,left:data.pos.x});
+                        $("body").append($click);
+                        $click.fadeTo(500,0.25).fadeTo(500,0.5)
+                              .fadeTo(500,0.25).fadeTo(500,0.4)
+                              .fadeTo(500,0.1,function(e){$click.remove()});
+                    } else {
+                        $div.css({
+                        top:data.y,
+                        left:data.x,
+                        width:data.width,
+                        height:data.height
+                        });
+                        
+                        if (data.type == 'text') {
+                            $div.append($("<div>")
+                                .append($("<p>").click(function(){
+                                    room.emit('remove mark',id);
+                                }).text("X")));
+                            $div.append($("<textarea>")
+                                .bind('change',function (){
+                                    room.emit('update mark',JSON.stringify({
+                                        type:data.type,
+                                        id:id,
+                                        content:$(this).val()
+                                    }));
+                                })
+                                .val(data.content));
+                            $div.css({'pointer-events':'all','background':'#eee'});
+                        }
+                        var sx=0;
+                        var sy=0;
+                        $div.css({'position':'absolute'});
+                        $div.draggable({
+                            start:function(e){
+                                sx=e.pageX;
+                                sy=e.pageY;
+                            }
+                            ,stop:function(e){
+                                room.emit('move',JSON.stringify({id:$(this).attr('id'),dx:e.pageX-sx,dy:e.pageY-sy}));
+                            }
+                        });
+                    }
+                    $("body").append($div);
+                }
+                ,draw:function(e,cont){
+                    var dcon = document.getElementById('canvas').getContext('2d');
+                    switch(cont.mode){
+                    case 'line':
+                        dcon.strokeStyle = "rgba"+cont.color;;
+                        dcon.lineWidth = 2;
+                        dcon.beginPath();
+                        dcon.moveTo(cont.ox,cont.oy);
+                        dcon.lineTo(cont.x,cont.y);
+                        dcon.stroke();
+                        dcon.closePath();
+                        $("#canvas").attr({ox:cont.x,oy:cont.y});
+                        break;
+                     case 'erase':
+                        dcon.clearRect(cont.x-20,cont.y-20,40,40);
+                        break;
+                     default:break;
+                    }
+                }
+            });
+            
+            
+            // room socket
+            room = io.connect("http://<%= wshost %>/<%= roomNumber %>");
+            room.on('join',function(){
+                var tmp = $("#roomCount").text();
+                $("#roomCount").text(tmp-0+1);
+            });
+            room.on('leave',function(){
+                var tmp = $("#roomCount").text();
+                $("#roomCount").text(tmp-1);
+            })
+            room.on('message',function(data){
+                var dat = JSON.parse(data);
+                $document.trigger('insertComment',[dat.user,dat.message,dat._id]);
+            });
+            room.on('image update',function(data){
+                var dat = JSON.parse(data);
+                $document.trigger('insertImage',[dat.path,dat.title,true]);
+            });
+            room.on('change image',function(data){
+                var dat = JSON.parse(data);
+                $document.trigger('changeMainImage',[dat.path,dat.title]);
+                $sly.activate(dat.index);
+                $sly.toCenter(dat.index);
+            });
+            room.on('new mark',function(data){
+                var dat = JSON.parse(data);
+                $document.trigger('insertMark',dat);
+            });//! on new mark
+            room.on('remove mark',function(id){
+                $("#"+id).remove();
+            });
+            room.on('update mark',function(data){
+                var dat = JSON.parse(data);
+                $("textarea","#"+dat.id).val(dat.content);
+            });
+            room.on('move',function(data){
+                var dat = JSON.parse(data);
+                var $elem = $("#"+dat.id);
+                $elem.animate({
+                    top:$elem.offset().top+dat.dy+'px',
+                    left:$elem.offset().left+dat.dx+'px'
+                },'normal');
+            });
+            room.on('drawing',function(data){
+                $document.trigger('draw',JSON.parse(data));
+            });
+            room.on('reset draw',function(){
+                document.getElementById("canvas").getContext('2d').clearRect(0,0,$("#canvas").width(),$("#canvas").height());
+            });
+            
+            //
+            // Sumbnail
+            //
+            $.get('/images',{room: <%= roomNumber %>},function(data){
+            
+                JSON.parse(data).forEach(function(dat){
+                    $document.trigger('insertImage',[dat.path,dat.title,false]);
+                });
+                $sly.init();
+                $.get('/activeImage',{roomNumber:<%= roomNumber %>},function(data){
+                    var dat = JSON.parse(data);
+                    var index = dat.activeImage;
+                    var $image = $("img", $("li","#slides").eq(index));
+                    $document.trigger('changeMainImage',[$image.attr('src'),$image.attr('alt')]);
+                    
+                    $sly.activate(index);
+                    $sly.toCenter(index);
+                });
+            });
+            
+            
+            //
+            // UploadForm
+            //
+            $("#uploadForm [type=button]").click(function(){
+                var file = $(":file",$("#uploadForm"));
+                if (file.val().length == 0) {
+                    alert('ファイルが選択されていません');
+                    return;
+                }
+                $("#uploadForm").submit();
+            });
+            $("#uploadForm").ajaxForm({
+                success:function(json){
+                    room.emit('image update',json);
+                    $(":file",$("#uploadForm")).val('');
+                },
+                error: function(){
+                    alert('false');
+                }
+            });
+            
+            //
+            // Comment Form
+            //
+            $("#commentForm").submit(function(){
+                var comment = $(":text",$(this));
+                if (comment.val().length == 0) return;
+                else {
+                    room.emit('message',JSON.stringify({
+                        message:comment.val(),
+                        user: <% if(authed) { %>'<%= username %>'<% }else{ %>'ななし'<% } %>
+                    }));
+                    comment.val('');
+                }
+            });
+            $.get('/chatlog',{roomNumber:<%= roomNumber %>},function(data){
+                if (data !== null) {
+                    JSON.parse(data).forEach(function(dat){
+                        $document.trigger('insertComment',[dat.userid,dat.comment,dat._id]);
+                    });
+                }
+            });
+            
+            
+            //
+            // Mark
+            //
+            $.get('/marks',{roomNumber:<%= roomNumber %>},function(data){
+                if (data === null) return;
+                JSON.parse(data).forEach(function(dat){
+                    $document.trigger('insertMark',dat);
+                });
+            });
+            var actionState = {init:true,mode:'click',drag:false,start:{},end:{}};
+            $("#actionSelector").val('click');
+            $("#actionSelector").bind('change',function(e){
+                var mode = $(this).val();
+                actionState.mode = mode;
+                actionState.init = true;
+                actionState.drag = false;
+            });
+            $document.click(function(e,touch){
+                if(touch !== undefined) {
+                    if(actionState.init)
+                        actionState.init=false;
+                    e.pageX = touch.pageX;
+                    e.pageY = touch.pageY;
+                }
+                if(actionState.init) return;
+                if(actionState.mode == 'click') {
+                    var x = e.pageX - 5;
+                    var y = e.pageY - 5;
+                    room.emit('new mark',JSON.stringify({type:'click',pos:{x:x,y:y}}));
+                }
+            });
+            
+            document.addEventListener('touchstart',function(e){
+                if (actionState.mode == 'text') e.preventDefault();
+                var touches = e.touches[0];
+                console.log(touches);
+                if (touches === undefined) return;
+                $document.trigger('mousedown',touches);
+                $(e.target).trigger('click',touches);
+            });
+            
+            
+            document.addEventListener('touchend',function(e){
+                $document.trigger('mouseup');
+            });
+            document.addEventListener('touchmove',function(e){
+                if (actionState.mode == 'text') e.preventDefault();
+                if ($(e.target).attr('id')=='canvas') return;
+                var touches = e.touches[0];
+                actionState.end = {x:touches.pageX,y:touches.pageY};
+            });
+            
+            $document.mousedown(function(e,touch){
+                if(touch !== undefined) {
+                    e.pageX = touch.pageX;
+                    e.pageY = touch.pageY;
+                }
+                if(actionState.init)
+                    actionState.init=false;
+                var mode = actionState.mode;
+                if (mode != 'text') return;
+                actionState.drag = true;
+                actionState.start = {x:e.pageX,y:e.pageY};
+            });
+            $document.mouseup(function(e){
+                var mode = actionState.mode;
+                if (mode != 'text') return;
+                actionState.drag = false;
+                if(e.pageX === undefined) {
+                    e.pageX = actionState.end.x;
+                    e.pageY = actionState.end.y;
+                }
+                var width = Math.abs(actionState.start.x-e.pageX);
+                var height = Math.abs(actionState.start.y-e.pageY);
+                if (width < 5 || height < 5) return;
+                var x = (actionState.start.x-e.pageX>0?e.pageX:actionState.start.x);
+                var y = (actionState.start.y-e.pageY>0?e.pageY:actionState.start.y);
+                room.emit('new mark',JSON.stringify({
+                    type:actionState.mode,
+                    x:x,
+                    y:y,
+                    width:width,
+                    height:height
+                }));
+                $("#actionSelector").val('click');
+                $("#actionSelector").trigger('change');
+            });
+            //
+            // drawing
+            //
+            var drawState = {drag:false,mode:'line'};
+            var ecanvas = document.getElementById('canvas');
+            ecanvas.addEventListener('touchstart',function(e){
+                e.preventDefault();
+                e.pageX = e.touches[0].pageX;
+                e.pageY = e.touches[0].pageY;
+                $("#canvas").trigger('mousedown');
+            });
+            ecanvas.addEventListener('touchend',function(e){
+                e.preventDefault();
+                $("canvas").trigger('mouseup');
+            });
+            ecanvas.addEventListener('touchmove',function(e){
+                if (actionState.drag) return;
+                e.preventDefault();
+                e.pageX = e.touches[0].pageX;
+                $("#canvas").trigger('mousemove',e.touches[0]);
+            });
+            $("#canvas").mousedown(function(e){
+                if (actionState.drag) return;
+                drawState.drag = true;
+                var offset = $(e.target).offset();
+                $("#canvas").attr({ox:e.pageX-offset.left,oy:e.pageY-offset.top});
+            });
+            $("#canvas").mouseup(function(e){
+                drawState.drag = false;
+            });
+            $("#canvas").mousemove(function(e,touch){
+                if (actionState.drag) return;
+                if (touch !== undefined) {
+                    e.pageX = touch.pageX;
+                    e.pageY = touch.pageY;
+                }
+                if (!drawState.drag) return;
+
+                var offset = $(e.target).offset();
+                var dat = {
+                    x:e.pageX-offset.left,
+                    y:e.pageY-offset.top,
+                    mode:drawState.mode
+                }
+                if (drawState.mode == 'line') {
+                    dat.ox = $(this).attr('ox'),
+                    dat.oy = $(this).attr('oy'),
+                    dat.color = <% if(username==author){ %>"(255,0,0,1)"<% } else { %>"(0,0,255,1)"<% } %>
+                }
+
+                $document.trigger('draw',dat);
+                room.emit('drawing',JSON.stringify(dat));
+            });
+            var changeDrawMode = function($elem,mode){
+                $($elem.parent()).find(".active").removeClass('active');
+                $elem.addClass('active');
+                drawState.mode = mode;
+            };
+            $("#sidemenu [alt=line]").click(function(){
+                changeDrawMode($(this).parent(),'line');
+            });
+            $("#sidemenu [value=Eraser]").click(function(){
+                changeDrawMode($(this).parent(),'erase');
+            });
+            $("#sidemenu [value='Reset Draw']").click(function(){
+                room.emit('reset draw');
+            });
+        });//! after loading html
+    </script>
+</head>
+<body><% include templates/header %>
+<h1><%= title %> ― <%= author %> さん, <span id='roomCount'>0</span> 人が閲覧しています。</h1>
+ <% if(username==author){ %>
+<!-- Room Editor -->
+<div></div>
+<% } %>
+<table><tr>
+  <td><select id='actionSelector'>
+      <option value='none'>NONE</option>
+      <option value='click'>CLICK</option>
+      <option value='text'>TEXT</option>
+      </select></td>
+  <td><form id='commentForm' action="javascript:;">
+      <input type='text' placeholder='コメントを入力して投稿' />
+      <input type='submit' value='send' />
+       </form></td>
+</tr></table>
+
+<div id='wrapper'>
+<div id='main'>
+<div id='scwrapper'>
+    <form id='uploadForm' action='/upload' method='POST' enctype='multipart/form-data'>
+        <input type='hidden' value=<%= roomNumber %> name='roomNumber' >
+        <input type='file' name='img' />
+        <input type='button' value='Upload' />
+    </form>
+    <!-- Sumbnail -->
+    <div id="slideWrapper">
+        <ul id='pages'></ul>
+        <div id='slides'><ul class='slidee'><li id='dummy_slide'></li></ul></div>
+        <div id="scrollbar"><div id="bar"></div></div>
+        <!-- Main Image -->
+    </div>
+</div>
+<div id='cwrapper'>
+    <div id='mainImage'></div>
+    <canvas id='canvas' ox=0 oy=0 width='800px' height='580px'></canvas>
+</div>
+</div><!--main-->
+<div id='sidemenu'>
+<table>
+<tr><td>お絵かきのメニューとか<br>
+<span class='active'><img src='/images/pencil.png' alt='line' title='line' width=20px /></span>
+<span><input type='button' value='Eraser' /></span>
+<span><input type='button' value="Reset Draw" /></span>
+</td></tr>
+<tr><td><div>ここにlayerを並べる</div></td></tr>
+</table>
+</div><!--sidemenu-->
+</div><!-- wrapper -->
+<% include templates/footer %>
+</body>
+</html>

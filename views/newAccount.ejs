@@ -1,0 +1,43 @@
+<html>
+<head>
+
+<% include templates/head %>
+
+<script>
+$(function() {
+    $("#create_form").submit(function(){
+        if ($("#userid").val().length == 0 || $("#passwd").val().length == 0) {
+            alert("空欄があります。");
+            return false;
+        }
+        else {
+            $.post('/available_account'
+                ,{id:$("#userid").val()}
+                ,function(flag){//true or false
+                    console.log(flag);
+                    if(flag) {
+                        return true;
+                    }
+                    else {
+                        alert("既に使われているアカウント名です。他のアカウント名で登録してください。");
+                        return false;
+                    }
+            });
+        }
+        //return false;
+    });
+});
+</script>
+</head>
+<body>
+<% include templates/header %>
+<p><%= message %></p>
+<p>新しいアカウントを作る</p>
+<form action='/create_account' method="post" id='create_form'>
+ アカウント名：<input type='text' name='id' id='userid' /><br>
+ パスワード：<input type='password' name='passwd' id='passwd' /><br>
+ <input type='submit' value='Create'/>
+ </form>
+<% include templates/footer %>
+</body>
+</html>

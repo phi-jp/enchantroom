@@ -1,0 +1,14 @@
+<table id="head_menu">
+<tr>
+<td><a href="/">トップページ</a></td>
+<td>
+<% if (!authed) {%>
+<a href="/login">ログイン</a>
+<% } else { %>
+</td><td><a href='/mypage'><%= username %>さん</a></td>
+<td><a href='/new_room'>ルームを作成する</a></td>
+<td><a href="/logout">ログアウト</a>
+<% } %>
+ </td>
+</tr>
+</table>

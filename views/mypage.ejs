@@ -1,0 +1,33 @@
+<html>
+<head>
+<% include templates/head %>
+<script>
+$(function(){
+<% if (authed) { %>
+    $.get('/users_room', function(rooms){
+        JSON.parse(rooms).forEach(function(room){
+            $("#pagelist").append($("<li>").append($("<a>").attr({href: '/room?number='+room.number}).text(room.title)));
+        });
+    });
+<% } %>
+});
+</script>
+</head>
+<body>
+<% include templates/header %>
+<% if (!authed) { %>
+<p>ログインしてください.</p>
+<% } else { %>
+
+<h1><%= username %>さん の ページ</h1>
+
+<p>メッセージ</p>
+<div id='messages'></div>
+
+<p><%= username %>さんが作成したページ</p>
+<div><ul id='pagelist'></ul></div>
+
+<% } %>
+<% include templates/footer %>
+</body>
+</html>
