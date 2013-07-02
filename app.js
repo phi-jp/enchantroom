@@ -24,6 +24,7 @@ app.configure(function(){
   app.use(express.cookieParser());
   app.use(express.session({secret: "mikan oishii"}));
   app.use(app.router);
+  app.use(require('less-middleware')({ src: __dirname + '/public' }));
   app.use(express.static(path.join(__dirname, 'public')));
 });
 
