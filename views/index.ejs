@@ -79,6 +79,7 @@
 </style>
     <script>
 $(function(){
+    return ;
     var iniRoomElem = function(room) {
         var $image = $("<div>").attr({class:'item',count:room.count,title:room.title,author:room.author})
             .append($("<img>").attr({
@@ -127,6 +128,7 @@ $(function(){
         });
     });
 
+    /*
     mainsocket.on('announce',function(data){
         var dat = JSON.parse(data);
         switch(dat.mode){
@@ -140,6 +142,8 @@ $(function(){
         default: break;
         }
     });
+*/
+
 });
     </script>
 </head>
