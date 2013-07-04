@@ -70,11 +70,11 @@ var server = http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
 
-var io = require('socket.io').listen(server);
-//var socket = require('socket.io').listen(app);
-io.sockets.on('connection', function(socket) {
+// var io = require('socket.io').listen(server);
+// //var socket = require('socket.io').listen(app);
+// io.sockets.on('connection', function(socket) {
 
-});
+// });
 
 
 

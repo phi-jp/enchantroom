@@ -41,7 +41,8 @@ exports.create = function(req,res) {
 
 
 exports.login = function(req,res) {
-    res.render('login2',{title:'login',message:'アカウント名とパスワードを入力してください', authed: false, referer:req.header('Referer'),wshost:wshost});
+    res.render('login2', {});
+    // res.render('login2',{title:'login',message:'アカウント名とパスワードを入力してください', authed: false, referer:req.header('Referer'),wshost:wshost});
 };
 
 exports.check = function(req,res){

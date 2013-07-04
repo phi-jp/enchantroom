@@ -6,6 +6,9 @@
 var wshost = require('../config').WSHOST;
 
 exports.index = function(req, res){
+  // res.render('index', {});
+  // return ;
+
   if (req.session.flg) {
     res.render('index', { title: 'enchantRoom', authed: req.session.flg, username: req.session.userid,wshost:wshost});
   }

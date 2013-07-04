@@ -10,6 +10,8 @@ exports.create = function(req,res){
 };
 
 exports.init = function(req,res) {
+    return ;
+    
     if (req.session.flg === undefined) res.send({flg:false, code:9});
     
     var Room = require('../model').Room;
