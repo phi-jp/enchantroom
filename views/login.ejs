@@ -1,33 +1,39 @@
+<!DOCTYPE html>
+
 <html>
-<head>
- <% include templates/head %>
- <script>
- $(function(){
-    $("#loginForm").submit(function(){
-        var userid = $("#userid").val();
-        var passwd = $("#passwd").val();
-        if (userid.length ==0 || passwd.length == 0) {
-            alert("空欄があります。");
-            return false;
-        }
-        else {
-            return true;
-        }
-    });
-  });
- </script>
-</head>
-<body>
-<% include templates/header %>
-<p><%= message %></p>
-<form action='/check_account' method='POST' id="loginForm">
- アカウント名：<input type='text' name='id' id='userid' /><br>
- パスワード：<input type='password' name='passwd' id='passwd' /><br>
- <input type='hidden' name='referer' value='<%= referer %>'>
- <input type='submit' value='login' /><br>
-</form>
-</p>
-<p><a href="/new_account">新しくアカウントを作る</a></p>
-<% include templates/footer %>
-</body>
+    <head>
+        <% include templates/head %>
+        <script src='/javascripts/jquery.imagesloaded.min.js'></script>
+        <script src='/javascripts/jquery.isotope.min.js'></script>
+        <script>
+        // setInterval(function() {
+        //     window.scrollBy(0, 1);
+        // }, 1000/30);
+        
+        $(function() {
+            
+            $('html,body').animate({
+                scrollTop: window.document.height - window.innerHeight,
+            }, 10 * 1000, 'linear', function() {
+//                console.log("finish");
+            });
+        });
+        </script>
+    </head>
+    <body>
+        <img class="bg" src="/images/enchantROOM.jpg" />
+        <form class="form-signin">
+            <h2 class="form-signin-heading">
+                Please login
+            </h2>
+            <input type="text" class="input-block-level" placeholder="Email address" />
+            <input type="password" class="input-block-level" placeholder="Password" />
+            <label class="checkbox">
+                <input type="checkbox" value="remember-mi" /> Remember me
+            </label>
+            <button class="btn btn-large btn-primary" type="submit">
+                Sign in
+            </button>
+        </form>
+    </body>
 </html>
