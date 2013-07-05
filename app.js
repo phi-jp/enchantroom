@@ -70,13 +70,26 @@ var server = http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
 
-// var io = require('socket.io').listen(server);
-// //var socket = require('socket.io').listen(app);
-// io.sockets.on('connection', function(socket) {
-
-// });
-
-
+var io = require('socket.io').listen(server);
+//var socket = require('socket.io').listen(app);
+io.sockets.on('connection', function(socket) {
+  socket.on('start', function(data) {
+    var data = {
+      userId: socket.handshake.userId,
+      data:data
+    };
+    socket.emit("start", data);
+    socket.broadcast.emit("start", data);
+  });
+  socket.on('move', function(data) {
+    var data = {
+      userId: socket.handshake.userId,
+      data:data
+    };
+    socket.emit("move", data);
+    socket.broadcast.emit("move", data);
+  });
+});
 
 
 

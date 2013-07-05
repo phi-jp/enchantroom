@@ -3,8 +3,13 @@
 <html>
     <head>
         <% include templates/head %>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/javascripts/index.js"></script>
     </head>
     <body>
         <h1><%= title %></h1>
+        <div class="container">
+            <canvas id="world" class="canvas"></canvas>
+        </div>
     </body>
 </html>
