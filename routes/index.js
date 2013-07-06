@@ -2,8 +2,10 @@
 /*
  * GET home page.
  */
- 
-var wshost = require('../config').WSHOST;
+
+var config = require('../config');
+var wshost = config.WSHOST;
+var secondPort = config.SECOND_PORT;
 
 exports.index = function(req, res){
   // res.render('index', {});
@@ -48,7 +50,8 @@ exports.room = function(req, res){
                 authed: req.session.flg,
                 username: req.session.userid,
                 author: doc.author,
-                wshost:wshost
+                wshost:wshost,
+                secondPort: secondPort,
                 //sumbnail: doc.sumbnail ? : default sumbnail
                 });
         }

@@ -1,4 +1,5 @@
-var port = 26183;
+var config = require('./config');
+var port = config.SECOND_PORT;
 var io = require('socket.io').listen(port);
 var db = require('./model');
 
@@ -52,6 +53,7 @@ var initRoom = function(roomNumber) {
             socket.broadcast.emit('leave');
         });
         socket.on('message',function(data){
+            console.log(data);
             var dat = JSON.parse(data);
             var ChatLog = require('./model').ChatLog(roomNumber);
             var newLog = new ChatLog({userid:dat.user,comment:dat.message});

@@ -9,7 +9,8 @@ var express = require('express')
   , sign = require('./routes/sign')
   , createroom = require('./routes/createroom')
   , http = require('http')
-  , path = require('path');
+  , path = require('path')
+  , websocket = require('./websocket');
 
 var app = express();
 

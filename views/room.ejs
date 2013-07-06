@@ -140,7 +140,7 @@
             
             
             // room socket
-            room = io.connect("http://<%= wshost %>/<%= roomNumber %>");
+            room = io.connect("http://" + location.hostname + ":<%= secondPort%>/<%= roomNumber %>");
             room.on('join',function(){
                 var tmp = $("#roomCount").text();
                 $("#roomCount").text(tmp-0+1);
