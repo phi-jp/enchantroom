@@ -8,21 +8,32 @@
         <script src="/javascripts/index.js"></script>
     </head>
     <body>
+        <img class="bg" src="/images/enchantROOM.jpg" />
         <% include templates/header %>
         <div class="container">
             <div id='roominfo'></div>
-            <div id='roomlist'></div>
-            <canvas id="world" class="canvas"></canvas>
-            <p>
+
+            <div class="roomlist-container">
+                <div id='roomlist'></div>
+                <ul id='sortAction'>
+                    <li><input type='button' value='Count' /></li>
+                    <li><input type='button' value='Title' /></li>
+                    <li><input type='button' value='Author' /></li>
+                </ul>
+            </div>
+            <p class="msg">
                 <a href='/new_room'>ルームを作成する</a>
                 <% if(!authed) { %>
                     <font color=red>（＊ログインが必要です）</font>
                 <% } %>
             </p>
+            <!--
+            <canvas id="world" class="canvas"></canvas>
             <div>
                 <button class="btn" id="file-btn">Button</button>
                 <input type="file" id="dummy-file-button" class="hidden">
             </div>
+        -->
         </div>
     </body>
 </html>

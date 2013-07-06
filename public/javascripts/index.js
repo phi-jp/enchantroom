@@ -63,6 +63,14 @@
                 });
             });
         });
+
+        $("#sortAction [type=button]").click(function(){
+            $("#roomlist").isotope({
+                sortBy:$(this).val().toLowerCase()
+                ,sortAscending:false
+            });
+        });
+
     };
     
     var initCanvas = function() {
@@ -149,10 +157,10 @@
     };
     
     var init = function() {
-        initSocketIO();
-        initCanvas();
-        initUI();
-        initSocial();
+//        initSocketIO();
+//        initCanvas();
+        // initSocial();
+        // initUI();
         initRoom();
     };
 
