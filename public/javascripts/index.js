@@ -6,7 +6,7 @@
     var context= null;
     
     var initSocketIO = function() {
-        var host = "http://" + ( location.host );
+        var host = "http://" + ( uri );
         socket  = io.connect(host);
     };
 
@@ -40,6 +40,7 @@
         };
 
         $.get('/roomlist', function(data) {
+            console.dir(data);
             JSON.parse(data).forEach(function(room){
                 var elm = createElement(room);
                 listElm.append(elm);
@@ -157,7 +158,7 @@
     };
     
     var init = function() {
-//        initSocketIO();
+       // initSocketIO();
 //        initCanvas();
         // initSocial();
         // initUI();
