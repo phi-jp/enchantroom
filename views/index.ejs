@@ -3,13 +3,26 @@
 <html>
     <head>
         <% include templates/head %>
-        <script src="/socket.io/socket.io.js"></script>
+        <script src='/javascripts/jquery.imagesloaded.min.js'></script>
+        <script src='/javascripts/jquery.isotope.min.js'></script>
         <script src="/javascripts/index.js"></script>
     </head>
     <body>
-        <h1><%= title %></h1>
+        <% include templates/header %>
         <div class="container">
+            <div id='roominfo'></div>
+            <div id='roomlist'></div>
             <canvas id="world" class="canvas"></canvas>
+            <p>
+                <a href='/new_room'>ルームを作成する</a>
+                <% if(!authed) { %>
+                    <font color=red>（＊ログインが必要です）</font>
+                <% } %>
+            </p>
+            <div>
+                <button class="btn" id="file-btn">Button</button>
+                <input type="file" id="dummy-file-button" class="hidden">
+            </div>
         </div>
     </body>
 </html>

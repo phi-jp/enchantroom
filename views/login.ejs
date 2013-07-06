@@ -22,17 +22,15 @@
     </head>
     <body>
         <img class="bg" src="/images/enchantROOM.jpg" />
-        <form class="form-signin">
+        <form action='/check_account' method='POST' class="form-signin">
             <h2 class="form-signin-heading">
                 Please login
             </h2>
-            <input type="text" class="input-block-level" placeholder="Email address" />
-            <input type="password" class="input-block-level" placeholder="Password" />
-            <label class="checkbox">
-                <input type="checkbox" value="remember-mi" /> Remember me
-            </label>
-            <button class="btn btn-large btn-primary" type="submit">
-                Sign in
+            <input type="text" name='id' class="input-block-level" placeholder="Name" />
+            <input type="password" name='passwd' class="input-block-level" placeholder="Password" />
+            <input type='hidden' name='referer' value='/'>
+            <button class="btn btn-large btn-primary" type="submit" value='login'>
+                Login
             </button>
         </form>
     </body>

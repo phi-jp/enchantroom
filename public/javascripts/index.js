@@ -9,6 +9,61 @@
         var host = "http://" + ( location.host );
         socket  = io.connect(host);
     };
+
+    var initRoom = function() {
+        var infoElm = $("#roominfo");
+        var listElm = $("#roomlist");
+
+        var createElement = function(room) {
+            var elm = $("<div>").attr({
+                class:'item',
+                count: room.count,title:room.title,author:room.author
+            });
+            var img = $("<img>").attr({
+                src:room.sumbnail,
+                alt:room.title
+            });
+            elm.append(img);
+
+            elm.click(function() {
+                infoElm.empty();
+                infoElm.append()
+                $cont = $("<div>").hide();
+                infoElm.append($cont.append($("<a>").attr({
+                    href:'/room?number='+room.number
+                    }).append($("<h2>").text(room.count +"人"+ "ー" +room.title + "ー" +room.author+"さん")))
+                    .append($("<div>").text(room.summary)));
+                $cont.show('slide');
+            });
+
+            return elm;
+        };
+
+        $.get('/roomlist', function(data) {
+            JSON.parse(data).forEach(function(room){
+                var elm = createElement(room);
+                listElm.append(elm);
+            });
+
+            // jquery plugin
+            listElm.imagesLoaded(function() {
+                listElm.isotope({
+                    itemSelector: '.item',
+                    getSortData : {
+                        count: function($elem) {
+                            return $elem.attr('count')-0;
+                        }
+                        ,title: function($elem) {
+                            return $elem.attr('title');
+                        }
+                        ,author: function($elem) {
+                            return $elem.attr('author');
+                        }
+                    }
+                });
+            });
+        });
+    };
     
     var initCanvas = function() {
         canvas = $q("#world");
@@ -20,7 +75,18 @@
         context.lineCap = "round";
         context.lineJoin = "round";
     };
-    
+
+    var initUI = function() {
+        var fileBtn = $q("#file-btn");
+        var dummyFileButton = document.getElementById("dummy-file-button");
+
+        fileBtn.onclick = function() {
+            var evt = document.createEvent("MouseEvents");
+            evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+            dummyFileButton.dispatchEvent( evt );
+        };
+    };
+
     var initSocial = function() {
         var x, y;
         var touch = false;
@@ -85,7 +151,9 @@
     var init = function() {
         initSocketIO();
         initCanvas();
+        initUI();
         initSocial();
+        initRoom();
     };
 
     window.onload = function() {

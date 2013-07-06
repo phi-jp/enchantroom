@@ -40,7 +40,7 @@
 <% if (authed) { %>
 <form action='/create_room' method='POST' id='form'  enctype='multipart/form-data'>
     <input type='hidden' name='username' value='<%= username%>' />
-    <font color=red>*</font>タイトル：<input type='text' name='title' /><br>
+    <font color=red>*</font>タイトル：<input id="title" type='text' name='title' /><br>
     サムネイル：<input type='file' name='sumbnail' /><br>
     説明：<textarea name='summary' col=100></textarea><br>
     <font color=red>*</font>は必須事項です。<input type='button' value='create' onclick='create()'/>
