@@ -16,7 +16,7 @@
 
         var createElement = function(room) {
             var elm = $("<div>").attr({
-                class:'item',
+                class:'item isotope-item',
                 count: room.count,title:room.title,author:room.author
             });
             var img = $("<img>").attr({
